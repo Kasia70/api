@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-pod-ca
+  template:
+    metadata:
+      name: mongo-pod-ca
+      labels:
+        app: mongo-pod-ca
+    spec:
+      containers:
+        - name: mongodb-container
+          image: mongo
+          env: 
+            - name: MONGO_INITDB_DATABASE
+              value: database
+          ports:
+            - containerPort: 27017 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    service-label: mongo-cluster-service-ca
+  name: mongo-cluster-service-ca
+spec:
+  type: ClusterIP
+  ports:
+  - name: mongo-cluster-service-port
+    port: 80
+    protocol: TCP
+  selector:
+    deployment-name: mongo-pod-ca
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service-ca
+  labels:
+    app: mongo-service-ca
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  selector:
+    app: mongo-pod-ca
